@@ -1,0 +1,227 @@
+<!DOCTYPE>
+<html>
+<head>
+	<title>Color Theory Exercise on Value</title>
+	<style>
+		body {
+			text-align:center;
+		}
+		button {
+			width: 150px;
+			height: 40px;
+		}
+		button.small-btn {
+			width:auto;
+			border:none;
+			background:none;
+			font-size:12px;
+		}
+		code {
+			white-space: pre-line;
+		}
+	</style>
+</head>
+<body>
+	<h1>Color Theory Exercise on Value</h1>
+	<p>In color theory, value is the lightness or darkness of a color. This transcends hue. To help train your eyes to detect the value of a color, change the gray on the right to match the value (lightness or darkness) of the color on the left. When you've matched the value to the best of your ability, save the match.</p>
+	<p>For the most accurate results, make the same number of matches for each hue (red, green, and blue), and make a large number of matches.</p>
+	<h3>Which color to test:</h3>
+	<div>
+		<button id="red-btn" class="color-btn selected" style="background-color:red;color:white;" name="Red" onclick="buttonChange(event);">Red (<span id="red-tally">0</span>)</button>
+		<button id="green-btn" class="color-btn" name="Green" onclick="buttonChange(event);">Green (<span id="green-tally">0</span>)</button>
+		<button id="blue-btn" class="color-btn" name="Blue" onclick="buttonChange(event);">Blue (<span id="blue-tally">0</span>)</button>
+	</div>
+	<div style="width:50%;float:left;">
+		<h2>Color</h2>
+		<div id="color" style="height:200px;width:100%;"></div>
+		<p id="color-code"></p>
+	</div>
+	<div style="width:50%;float:left;">
+		<h2>Gray</h2>
+		<div id="gray" style="height:200px;width:100%;"></div>
+		<input type="range" min="0" max="255" step="1" id="gray-selector" onchange="newGray();" style="width:100%;">
+		<p id="gray-code"></p>
+	</div>
+	<br>
+	<div>
+		<button onclick="saveMatch();">Save Match</button>
+	</div>
+	<br>
+	<hr>
+		<h3>Done?</h3>
+	<div>
+		<button onclick="calculateRatios();">Calculate Ratios</button>
+	</div>
+	<br>
+	<div>
+		<p id="avg-ratios"></p>
+		<p id="check-one"></p>
+	</div>
+	<div style="text-align:left;max-width:900px;margin:auto;">
+		<h2>About Color Value Ratios</h2>
+		<p>Color value ratios are a way to accurately calculate the color value from an rgb code.</p>
+		<p>In order to digitally convert a color picture into grayscale, a photo editing program needs a way to calculate the value of a color. Calculating the value of gray is simple, because digital gray is represented in decimal code (rgb) by having each decimal the same number. rgb(0,0,0) is black, rgb(127,127,127) is a mid-point gray, and rgb(255,255,255) is white.</p>
+		<p>You can factor out the gray decimal since they will always be the same number, which allows you to cancel out the value ratios(a,b, and c). The value ratios are irrelevant for grayscale, since we know they have to add up to 1.</p>
+		<code>Where a + b + c = 1, z = gray decimal, v = value, a = red's value ratio, b = green's value ratio, c = blue's value ratio
+		(a(z) + b(z) + c(z))/255 = v
+		(z(a+b+c))/255 = v
+		z(1)/255 = v
+		v = z/255</code>
+		<p>Calculating the value of a non-gray color is much more difficult. 100% red rgb(255,0,0), 100% green rgb(0,255,0), and 100% blue rgb(0,0,255) do NOT have the same value. Some photo editors calculate color to grayscale by making the value ratios all 1/3. This is a simple solution, but it will not get you accurate results. Our eyes can tell us that 100% blue is much darker than 100% red, which is darker than 100% green. Thus, we need unique value ratios for each hue (red, green, and blue).</p>
+		<code>Where a + b + c = 1, r = red, g = green, e = blue, a = red's value ratio, b = green's value ratio, c = blue's value ratio
+		(a(r) + b(g) + c(e))/255 = value</code>
+		<p>This exercise takes user sumbitted matching results to calculate the value ratios. The ratios can be plugged into the above equation, which will calculate the value of any given digital color (in rbg).</p>
+	</div>
+	<br>
+	<script>
+		var ratios = {Red:[],Green:[],Blue:[]};
+		var numbers = [];
+
+		// Change button color and class on click
+		function buttonChange(event) {
+			var btn = event.target;
+			var all_btns = document.getElementsByClassName('color-btn');
+			for (var i = 0; i < all_btns.length; i++) {
+				all_btns[i].style.backgroundColor = 'white';
+				all_btns[i].style.color = 'black';
+				all_btns[i].classList.remove('selected');
+			}
+			btn.style.backgroundColor = btn.name;
+			btn.style.color = 'white';
+			btn.classList.add('selected');
+			newColor();
+		}
+
+		// Save random numbers so each color tests same decimal codes
+		function randomNumber(color) {
+			// If number for tally index
+			var tally = parseInt(document.getElementById(color.toLowerCase() + '-tally').innerText);
+			var number;
+			if (typeof numbers[tally] !== 'undefined') {
+				number = numbers[tally];
+			} else {
+				// else generate random number and save
+				number = Math.floor(Math.random() * (255 - 20 + 1)) + 20;
+				numbers.push(number);
+			}
+			return number;
+		}
+
+		// Change the color in colored box
+		function newColor() {
+			var color_el = document.getElementById('color');
+			// Detect chosen hue from buttons
+			var selected = document.getElementsByClassName('color-btn selected')[0].name;
+
+			// Choose random saturation
+			var hues = {Red:0,Green:0,Blue:0};
+			for (color in hues) {
+				if (color == selected) {
+					/*
+					hues[color] = Math.floor(Math.random()*256);
+					*/
+					hues[color] = randomNumber(color);
+				}
+			}
+			var color_code = 'rgb('+hues.Red+','+hues.Green+','+hues.Blue+')';
+			color_el.style.backgroundColor = color_code;
+			//document.getElementById('color-code').innerText = color_code;
+		}
+
+		// Change gray based on input range
+		function newGray() {
+			var gray_el = document.getElementById('gray');
+			var gray_input = document.getElementById('gray-selector');
+			// Detect the input's value
+			var gray_hue = gray_input.value;
+
+			// Change the gray box to correct background color
+			var gray_code = 'rgb('+gray_hue+','+gray_hue+','+gray_hue+')';
+			gray_el.style.backgroundColor = gray_code;
+			//document.getElementById('gray-code').innerText = gray_code;
+		}
+
+		// Calculate and save the color match value
+		function saveMatch() {
+			// Detect the color: Red, Green, or Blue
+			var selected = document.getElementsByClassName('color-btn selected')[0].name;
+
+			// Calculate the color value from gray
+			var value_raw = document.getElementById('gray-selector').value / 255;
+			var value = value_raw.toFixed(5);
+
+			// Save the color's ratio
+			ratios[selected].push(value);
+
+			// Add to the color's tally
+			var tally_id = selected.toLowerCase() + '-tally';
+			var tally_old = parseInt(document.getElementById(tally_id).innerText);
+			document.getElementById(tally_id).innerText = tally_old + 1;
+
+			// Return next color
+			newColor();
+		}
+
+		// Calculate Ratios
+		function calculateRatios() {
+			var avg_ratios = {};
+			var error = false;
+			var error_colors = [];
+			// Loop through each color in object
+			for (color in ratios) {
+				var sum = 0;
+				var color_arr = ratios[color];
+				// Loop through the color's ratios
+				for (var i=0; i < color_arr.length; i++) {
+					// Add up all of the color's ratios
+					sum += parseFloat(color_arr[i]);
+				}
+				if (color_arr.length === 0) {
+					// Send message saying user needs to test other colors
+					error = true;
+					error_colors.push(color);
+				} else {
+					// Average the ratios
+					avg_ratios[color] = (sum / color_arr.length).toFixed(3);
+				}
+			}
+			if (error) {
+				var error_msg = '';
+				for (var i=0; i < error_colors.length; i++) {
+					if (i === 0) {
+						error_msg += error_colors[i];
+					} else if (i == error_colors.length - 1) {
+						error_msg += ' and ' + error_colors[i];
+					} else {
+						error_msg += ', ' + error_colors[i];
+					}
+				}
+				window.alert('Oops! You need to test more ' + error_msg + ' colors and try again.');
+			} else {
+				console.log('Average:', avg_ratios);
+				var ratio_text = '';
+				var ratio_math = '';
+				var i = 0;
+				var ratio_sum = 0;
+				for (color in avg_ratios) {
+					ratio_sum += parseFloat(avg_ratios[color]);
+					if (i !== 2) {
+						ratio_text += color + ': ' + avg_ratios[color] + ', ';
+						ratio_math += avg_ratios[color] + ' + ';
+					} else {
+						ratio_text += color + ': ' + avg_ratios[color];
+						ratio_math += avg_ratios[color] + ' = ' + ratio_sum.toFixed(3);
+					}
+					i++;
+				}
+				document.getElementById('avg-ratios').innerText = ratio_text;
+				document.getElementById('check-one').innerText = ratio_math;
+			}
+		}
+
+		newColor();
+		newGray();
+
+	</script>
+</body>
+</html>
